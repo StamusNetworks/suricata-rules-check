@@ -52,7 +52,7 @@ runs:
 
         FAIL_ON_WARNINGS_FLAG=""
         if [ "${{ inputs.fail-on-warnings }}" = "true" ]; then
-          FAIL_ON_WARNINGS_FLAG="--fail-on-warnings"
+          FAIL_ON_WARNINGS_FLAG="--error-on-warning"
         fi
 
         NO_ENGINE_FLAG=""
