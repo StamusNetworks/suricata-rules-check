@@ -73,8 +73,7 @@ runs:
             --image "${{ inputs.suricata-image }}" \
             --batch-file "$rules_file" \
             $NO_ENGINE_FLAG \
-            $FAIL_ON_WARNINGS_FLAG \
-            2>/dev/null)
+            $FAIL_ON_WARNINGS_FLAG)
           FILE_EXIT=$?
 
           while IFS= read -r line; do
