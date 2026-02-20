@@ -5,7 +5,7 @@ A GitHub Action that validates Suricata `.rules` files and reports diagnostics a
 ## Usage
 
 ```yaml
-- uses: stamus-networks/suricata-rules-check@v1
+- uses: StamusNetworks/suricata-rules-check@v1
 ```
 
 By default, the action finds all `*.rules` files in the repository and validates each one using `suricata-language-server`.
@@ -27,13 +27,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: stamus-networks/suricata-rules-check@v1
+      - uses: StamusNetworks/suricata-rules-check@v1
 ```
 
 ### Fail on warnings and use a pinned Suricata version
 
 ```yaml
-- uses: stamus-networks/suricata-rules-check@v1
+- uses: StamusNetworks/suricata-rules-check@v1
   with:
     fail-on-warnings: 'true'
     suricata-image: 'jasonish/suricata:7.0'
@@ -44,7 +44,7 @@ jobs:
 Engine analysis catches more issues but requires pulling a Docker image and running Suricata. Skip it for faster feedback on syntax-only checks:
 
 ```yaml
-- uses: stamus-networks/suricata-rules-check@v1
+- uses: StamusNetworks/suricata-rules-check@v1
   with:
     engine-analysis: 'false'
 ```
@@ -52,7 +52,7 @@ Engine analysis catches more issues but requires pulling a Docker image and runn
 ### Use outputs to gate a deployment
 
 ```yaml
-- uses: stamus-networks/suricata-rules-check@v1
+- uses: StamusNetworks/suricata-rules-check@v1
   id: check
 - name: Summarize results
   run: |
