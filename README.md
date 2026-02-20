@@ -64,6 +64,7 @@ Engine analysis catches more issues but requires pulling a Docker image and runn
 
 | Input | Required | Default | Description |
 |-------|----------|---------|-------------|
+| `rules-path` | No | `.` | Directory to search for rules files |
 | `rules-pattern` | No | `*.rules` | `find -name` pattern used to locate rule files in the repository |
 | `suricata-image` | No | `jasonish/suricata:latest` | Suricata Docker image used for engine analysis |
 | `fail-on-warnings` | No | `false` | Exit with a failure status if any warnings are found, in addition to errors |

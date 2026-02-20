@@ -7,6 +7,10 @@ branding:
   color: 'blue'
 
 inputs:
+  rules-path:
+    description: 'Directory to search for rules files'
+    required: false
+    default: '.'
   rules-pattern:
     description: 'Filename pattern for rules files (passed to find -name), e.g. "*.rules"'
     required: false
@@ -98,7 +102,7 @@ runs:
           if [ $FILE_EXIT -ne 0 ]; then
             OVERALL_EXIT=1
           fi
-        done < <(find . -name "${{ inputs.rules-pattern }}" -print0)
+        done < <(find "${{ inputs.rules-path }}" -name "${{ inputs.rules-pattern }}" -print0)
 
         echo "error-count=${TOTAL_ERRORS}" >> "$GITHUB_OUTPUT"
         echo "warning-count=${TOTAL_WARNINGS}" >> "$GITHUB_OUTPUT"
