@@ -42,8 +42,7 @@ runs:
 
     - name: Install suricata-language-server
       shell: bash
-      #run: pip install suricata-language-server
-      run: pip install git+https://github.com/StamusNetworks/suricata-language-server.git
+      run: pip install "suricata-language-server~=2.0.0"
 
     - name: Validate rules files
       id: validate
