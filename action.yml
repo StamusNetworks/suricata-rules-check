@@ -1,0 +1,108 @@
+name: 'Validate Suricata Rules'
+description: 'Validate Suricata .rules files using suricata-language-server'
+author: 'Stamus Networks'
+
+branding:
+  icon: 'shield'
+  color: 'blue'
+
+inputs:
+  rules-pattern:
+    description: 'Filename pattern for rules files (passed to find -name), e.g. "*.rules"'
+    required: false
+    default: '*.rules'
+  suricata-image:
+    description: 'Suricata Docker image to use for validation'
+    required: false
+    default: 'jasonish/suricata:latest'
+  fail-on-warnings:
+    description: 'Exit with failure if any warnings are found (in addition to errors)'
+    required: false
+    default: 'false'
+  engine-analysis:
+    description: 'Run Suricata engine analysis (set to "false" to speed up validation)'
+    required: false
+    default: 'true'
+
+outputs:
+  error-count:
+    description: 'Total number of error-severity diagnostics found across all files'
+    value: ${{ steps.validate.outputs.error-count }}
+  warning-count:
+    description: 'Total number of warning-severity diagnostics found across all files'
+    value: ${{ steps.validate.outputs.warning-count }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install suricata-language-server
+      shell: bash
+      run: pip install suricata-language-server
+
+    - name: Validate rules files
+      id: validate
+      shell: bash
+      run: |
+        set +e  # collect failures manually so all files are checked
+
+        FAIL_ON_WARNINGS_FLAG=""
+        if [ "${{ inputs.fail-on-warnings }}" = "true" ]; then
+          FAIL_ON_WARNINGS_FLAG="--fail-on-warnings"
+        fi
+
+        NO_ENGINE_FLAG=""
+        if [ "${{ inputs.engine-analysis }}" = "false" ]; then
+          NO_ENGINE_FLAG="--no-engine-analysis"
+        fi
+
+        TOTAL_ERRORS=0
+        TOTAL_WARNINGS=0
+        OVERALL_EXIT=0
+
+        while IFS= read -r -d '' rules_file; do
+          echo "--- Validating: $rules_file"
+
+          OUTPUT=$(suricata-language-server \
+            --container \
+            --image "${{ inputs.suricata-image }}" \
+            --batch-file "$rules_file" \
+            $NO_ENGINE_FLAG \
+            $FAIL_ON_WARNINGS_FLAG \
+            2>/dev/null)
+          FILE_EXIT=$?
+
+          while IFS= read -r line; do
+            [ -z "$line" ] && continue
+
+            SEVERITY=$(python3 -c "import sys,json; d=json.loads(sys.argv[1]); print(d.get('severity',''))" "$line" 2>/dev/null)
+            MESSAGE=$(python3  -c "import sys,json; d=json.loads(sys.argv[1]); print(d.get('message',''))" "$line" 2>/dev/null)
+            # to_message() lines are 0-indexed; GitHub annotations are 1-indexed
+            LINE_NUM=$(python3 -c "import sys,json; d=json.loads(sys.argv[1]); print(d['range']['start']['line'] + 1)" "$line" 2>/dev/null)
+            COL_NUM=$(python3  -c "import sys,json; d=json.loads(sys.argv[1]); print(d['range']['start']['character'] + 1)" "$line" 2>/dev/null)
+
+            if [ "$SEVERITY" = "1" ]; then
+              TOTAL_ERRORS=$((TOTAL_ERRORS + 1))
+              echo "::error file=${rules_file},line=${LINE_NUM},col=${COL_NUM}::${MESSAGE}"
+            elif [ "$SEVERITY" = "2" ]; then
+              TOTAL_WARNINGS=$((TOTAL_WARNINGS + 1))
+              echo "::warning file=${rules_file},line=${LINE_NUM},col=${COL_NUM}::${MESSAGE}"
+            elif [ "$SEVERITY" = "4" ]; then
+              echo "::notice file=${rules_file},line=${LINE_NUM},col=${COL_NUM}::${MESSAGE}"
+            fi
+          done <<< "$OUTPUT"
+
+          if [ $FILE_EXIT -ne 0 ]; then
+            OVERALL_EXIT=1
+          fi
+        done < <(find . -name "${{ inputs.rules-pattern }}" -print0)
+
+        echo "error-count=${TOTAL_ERRORS}" >> "$GITHUB_OUTPUT"
+        echo "warning-count=${TOTAL_WARNINGS}" >> "$GITHUB_OUTPUT"
+
+        echo "Validation complete — errors: ${TOTAL_ERRORS}, warnings: ${TOTAL_WARNINGS}"
+        exit $OVERALL_EXIT
