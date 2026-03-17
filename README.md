@@ -1,6 +1,6 @@
 # Validate Suricata Rules
 
-A GitHub Action that validates Suricata `.rules` files and reports diagnostics as GitHub annotations on your pull requests and workflow runs.
+A GitHub Action that validates Suricata signatures files and reports diagnostics as GitHub annotations on your pull requests and workflow runs.
 
 ## Usage
 
