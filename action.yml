@@ -1,5 +1,5 @@
 name: 'Validate Suricata Rules'
-description: 'Validate Suricata .rules files using suricata-language-server'
+description: 'Validate Suricata signatures files using suricata-language-server'
 author: 'Stamus Networks'
 
 branding:
